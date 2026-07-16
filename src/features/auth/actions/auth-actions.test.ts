@@ -1,44 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  createClient: vi.fn(),
+  createAuthAccount: vi.fn(),
   redirect: vi.fn(),
   signInWithPassword: vi.fn(),
-  signOut: vi.fn(),
-  signUp: vi.fn(),
+  signOutCurrentSession: vi.fn(),
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: mocks.createClient,
+vi.mock("../api/auth-api", () => ({
+  createAuthAccount: mocks.createAuthAccount,
+  signInWithPassword: mocks.signInWithPassword,
+  signOutCurrentSession: mocks.signOutCurrentSession,
 }));
 
 vi.mock("next/navigation", () => ({
   redirect: mocks.redirect,
 }));
 
-import { loginAction, signOutAction, signupAction } from "./auth-actions";
+import { loginAction } from "./login-action";
+import { signOutAction } from "./sign-out-action";
+import { signupAction } from "./signup-action";
 
 describe("auth actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.createClient.mockResolvedValue({
-      auth: {
-        signInWithPassword: mocks.signInWithPassword,
-        signOut: mocks.signOut,
-        signUp: mocks.signUp,
-      },
-    });
   });
 
   it("rejects invalid credentials before calling Supabase", async () => {
     const result = await loginAction({ email: "bad", password: "short" });
 
     expect(result?.status).toBe("field-error");
-    expect(mocks.createClient).not.toHaveBeenCalled();
+    expect(mocks.signInWithPassword).not.toHaveBeenCalled();
   });
 
   it("returns a generic login error", async () => {
-    mocks.signInWithPassword.mockResolvedValue({ error: new Error("invalid") });
+    mocks.signInWithPassword.mockResolvedValue({ success: false });
 
     await expect(
       loginAction({ email: "driver@example.com", password: "roadmate-2026" }),
@@ -49,7 +45,7 @@ describe("auth actions", () => {
   });
 
   it("redirects after successful login", async () => {
-    mocks.signInWithPassword.mockResolvedValue({ error: null });
+    mocks.signInWithPassword.mockResolvedValue({ success: true });
 
     await loginAction({
       email: "DRIVER@example.com",
@@ -63,24 +59,28 @@ describe("auth actions", () => {
     expect(mocks.redirect).toHaveBeenCalledWith("/");
   });
 
-  it("does not report signup success without a session", async () => {
-    mocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
+  it("returns a generic signup error", async () => {
+    mocks.createAuthAccount.mockResolvedValue({ success: false });
 
     const result = await signupAction({
       email: "driver@example.com",
       password: "roadmate-2026",
     });
 
-    expect(result?.status).toBe("error");
+    expect(result).toEqual({
+      status: "error",
+      message:
+        "We couldn't create your account. Try signing in if you already have one.",
+    });
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
-  it("signs out only the current session", async () => {
-    mocks.signOut.mockResolvedValue({ error: null });
+  it("redirects after signing out", async () => {
+    mocks.signOutCurrentSession.mockResolvedValue({ success: true });
 
     await signOutAction();
 
-    expect(mocks.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(mocks.signOutCurrentSession).toHaveBeenCalledOnce();
     expect(mocks.redirect).toHaveBeenCalledWith("/login");
   });
 });
