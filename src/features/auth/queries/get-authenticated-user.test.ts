@@ -21,11 +21,12 @@ describe("getAuthenticatedUser", () => {
 
   it("returns the authenticated user's email", async () => {
     mocks.getClaims.mockResolvedValue({
-      data: { claims: { email: "driver@example.com" } },
+      data: { claims: { email: "driver@example.com", sub: "user-123" } },
       error: null,
     });
 
     await expect(getAuthenticatedUser()).resolves.toEqual({
+      id: "user-123",
       email: "driver@example.com",
     });
   });

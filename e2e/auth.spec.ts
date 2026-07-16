@@ -17,7 +17,7 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: "Trip plans" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your trips" })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
 
   await page
@@ -25,11 +25,22 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
     .filter({ hasText: "Zagreb, Ljubljana & Graz" })
     .getByRole("link", { name: "Details" })
     .click();
-  await expect(page).toHaveURL(/\/trips\/zagreb-ljubljana-graz$/);
+  await expect(page).toHaveURL(/\/templates\/zagreb-ljubljana-graz$/);
   await expect(
     page.getByRole("heading", { name: "Zagreb, Ljubljana & Graz" }),
   ).toBeVisible();
   await expect(page.getByText("€812")).toBeVisible();
+  await page.getByRole("link", { name: "Use this template" }).click();
+  await expect(page).toHaveURL(/\/trips\/new\?template=zagreb-ljubljana-graz$/);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Save & calculate" }).click();
+  await expect(page).toHaveURL(/\/trips\/[0-9a-f-]+$/);
+  await expect(
+    page.getByRole("heading", { name: "Zagreb, Ljubljana & Graz" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Your trip is saved/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tolls & vignettes" })).toBeVisible();
   expect(
     await page.evaluate(
       () =>
@@ -38,6 +49,9 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
     ),
   ).toBe(true);
   await page.getByRole("link", { name: "All trips" }).click();
+  await expect(
+    page.getByRole("article").filter({ hasText: "Zagreb, Ljubljana & Graz" }).first(),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login$/);

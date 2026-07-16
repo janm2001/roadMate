@@ -24,6 +24,17 @@ supabase:status` for local development, or from the Supabase Connect dialog for
 a hosted project. Never expose a Supabase secret or service-role key in a
 `NEXT_PUBLIC_` variable.
 
+For live trip estimates, enable Maps JavaScript API, Routes API, and Places API
+(New) in a billed Google Cloud project. Set `GOOGLE_MAPS_SERVER_API_KEY` to a
+server-only key restricted to those APIs. Set
+`NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY` to a separate key restricted by HTTP
+referrer for local and production origins. Configure Google Cloud quotas and
+budget alerts before enabling live traffic.
+
+Without Google keys, trips still save as private drafts and can be recalculated
+after configuration. Fuel price defaults are read from the European Commission
+Weekly Oil Bulletin; users can override the per-litre value in the trip form.
+
 ## Verification
 
 ```bash

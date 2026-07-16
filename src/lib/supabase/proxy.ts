@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnvironment } from "./env";
 
 const authRoutes = new Set(["/login", "/signup"]);
+const publicRoutes = new Set(["/privacy", "/terms"]);
 
 function redirectWithSession(
   request: NextRequest,
@@ -54,8 +55,9 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const isAuthenticated = Boolean(data?.claims);
   const isAuthRoute = authRoutes.has(request.nextUrl.pathname);
+  const isPublicRoute = publicRoutes.has(request.nextUrl.pathname);
 
-  if (!isAuthenticated && !isAuthRoute) {
+  if (!isAuthenticated && !isAuthRoute && !isPublicRoute) {
     return redirectWithSession(request, response, "/login");
   }
 
