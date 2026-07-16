@@ -17,8 +17,27 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: "You're signed in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Trip plans" })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
+
+  await page
+    .getByRole("article")
+    .filter({ hasText: "Zagreb, Ljubljana & Graz" })
+    .getByRole("link", { name: "Details" })
+    .click();
+  await expect(page).toHaveURL(/\/trips\/zagreb-ljubljana-graz$/);
+  await expect(
+    page.getByRole("heading", { name: "Zagreb, Ljubljana & Graz" }),
+  ).toBeVisible();
+  await expect(page.getByText("€812")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+  await page.getByRole("link", { name: "All trips" }).click();
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login$/);

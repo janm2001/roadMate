@@ -1,11 +1,12 @@
 "use client";
 
-import { LoaderCircle, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useState, useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
+import { AsyncButton } from "@/components/ui/async-button";
+import { FormMessage } from "@/components/ui/form-message";
 
-import { signOutAction } from "../actions/auth-actions";
+import { signOutAction } from "../actions/sign-out-action";
 
 export function SignOutButton() {
   const [error, setError] = useState<string | null>(null);
@@ -28,25 +29,20 @@ export function SignOutButton() {
 
   return (
     <div>
-      <Button
+      <AsyncButton
         type="button"
         variant="outline"
         size="lg"
         className="h-11"
         onClick={handleSignOut}
-        disabled={isPending}
+        isPending={isPending}
+        pendingLabel="Signing out"
       >
-        {isPending ? (
-          <LoaderCircle className="animate-spin" aria-hidden="true" />
-        ) : (
-          <LogOut aria-hidden="true" />
-        )}
-        {isPending ? "Signing out" : "Sign out"}
-      </Button>
+        <LogOut aria-hidden="true" />
+        Sign out
+      </AsyncButton>
       {error ? (
-        <p className="mt-3 text-sm text-destructive" role="alert">
-          {error}
-        </p>
+        <FormMessage className="mt-3">{error}</FormMessage>
       ) : null}
     </div>
   );
