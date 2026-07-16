@@ -1,8 +1,5 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import type {
-  UseFieldArrayReturn,
-  UseFormReturn,
-} from "react-hook-form";
+import type { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
@@ -100,9 +97,22 @@ export function TripRouteStep({
                 id={`trip-stop-${index}`}
                 disabled={disabled}
                 value={stop}
-                onChange={(place) =>
-                  fieldArray.update(index, { ...stop, ...place })
-                }
+                onChange={(place) => {
+                  form.setValue(
+                    `stops.${index}.googlePlaceId`,
+                    place.googlePlaceId,
+                    { shouldDirty: true, shouldValidate: true },
+                  );
+                  form.setValue(`stops.${index}.placeLabel`, place.placeLabel, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                  form.setValue(
+                    `stops.${index}.countryCode`,
+                    place.countryCode,
+                    { shouldDirty: true, shouldValidate: true },
+                  );
+                }}
               />
               {form.formState.errors.stops?.[index]?.placeLabel?.message ? (
                 <FormMessage className="mt-2">

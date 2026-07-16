@@ -19,6 +19,17 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Your trips" })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
+  const zagrebImage = page
+    .getByRole("img", { name: /Zagreb Upper Town/ })
+    .first();
+  await expect(zagrebImage).toBeVisible();
+  await expect
+    .poll(() =>
+      zagrebImage.evaluate((image) =>
+        image instanceof HTMLImageElement ? image.naturalWidth : 0,
+      ),
+    )
+    .toBeGreaterThan(0);
 
   await page
     .getByRole("article")
@@ -30,9 +41,25 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
     page.getByRole("heading", { name: "Zagreb, Ljubljana & Graz" }),
   ).toBeVisible();
   await expect(page.getByText("€812")).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: /Ljubljana riverfront/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: /Graz historic centre/ }),
+  ).toBeVisible();
   await page.getByRole("link", { name: "Use this template" }).click();
   await expect(page).toHaveURL(/\/trips\/new\?template=zagreb-ljubljana-graz$/);
+  const tripTitle = page.getByLabel("Trip name");
+  await tripTitle.press("End");
+  await tripTitle.press("x");
+  await expect(tripTitle).toBeFocused();
+  await tripTitle.press("Backspace");
   await page.getByRole("button", { name: "Continue" }).click();
+  const firstStop = page.locator("#trip-stop-0");
+  await firstStop.press("End");
+  await firstStop.press("x");
+  await expect(firstStop).toBeFocused();
+  await firstStop.press("Backspace");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Save & calculate" }).click();
   await expect(page).toHaveURL(/\/trips\/[0-9a-f-]+$/);
@@ -40,7 +67,9 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
     page.getByRole("heading", { name: "Zagreb, Ljubljana & Graz" }),
   ).toBeVisible();
   await expect(page.getByText(/Your trip is saved/)).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Tolls & vignettes" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Tolls & vignettes" }),
+  ).toBeVisible();
   expect(
     await page.evaluate(
       () =>
@@ -50,7 +79,10 @@ test("signs up, signs out, and signs back in", async ({ page }, testInfo) => {
   ).toBe(true);
   await page.getByRole("link", { name: "All trips" }).click();
   await expect(
-    page.getByRole("article").filter({ hasText: "Zagreb, Ljubljana & Graz" }).first(),
+    page
+      .getByRole("article")
+      .filter({ hasText: "Zagreb, Ljubljana & Graz" })
+      .first(),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Sign out" }).click();

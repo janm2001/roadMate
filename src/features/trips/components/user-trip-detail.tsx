@@ -1,8 +1,21 @@
-import { ArrowLeft, CalendarDays, Clock3, Fuel, Gauge, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Clock3,
+  Fuel,
+  Gauge,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 import { formatTripDateRange } from "../calculations/trip-formatters";
-import type { ParkingPlace, PlaceEnrichment, UserTrip } from "../types/user-trip";
+import { getCityImage } from "../constants/city-images";
+import type {
+  ParkingPlace,
+  PlaceEnrichment,
+  UserTrip,
+} from "../types/user-trip";
+import { CityImage } from "./city-image";
 import { ParkingOptions } from "./parking-options";
 import { RecalculateTripButton } from "./recalculate-trip-button";
 import { RoadPaymentPanel } from "./road-payment-panel";
@@ -98,7 +111,10 @@ export function UserTripDetail({
         </div>
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-lg border bg-white" aria-label="Trip route map">
+      <section
+        className="mt-8 overflow-hidden rounded-lg border bg-white"
+        aria-label="Trip route map"
+      >
         <TripMap
           apiKey={browserApiKey}
           encodedPolyline={estimate?.encodedPolyline ?? null}
@@ -113,7 +129,10 @@ export function UserTripDetail({
           </h2>
           <ol className="mt-4 grid gap-2 sm:grid-cols-2">
             {estimate.majorRoads.map((instruction, index) => (
-              <li className="flex gap-3 border-l-2 border-[#87a993] pl-3 text-sm leading-6" key={`${instruction}-${index}`}>
+              <li
+                className="flex gap-3 border-l-2 border-[#87a993] pl-3 text-sm leading-6"
+                key={`${instruction}-${index}`}
+              >
                 <span className="font-semibold">{index + 1}</span>
                 {instruction}
               </li>
@@ -124,36 +143,56 @@ export function UserTripDetail({
 
       <div className="grid gap-12 py-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)] lg:gap-16">
         <section aria-labelledby="stops-heading">
-          <h2 id="stops-heading" className="text-xl font-semibold">Stops, stays & parking</h2>
+          <h2 id="stops-heading" className="text-xl font-semibold">
+            Stops, stays & parking
+          </h2>
           <div className="mt-5 space-y-8">
             {trip.stops.map((stop, index) => {
               const live = liveStops.find((item) => item.stopId === stop.id);
+              const localPhoto = getCityImage(stop.placeLabel);
               return (
                 <article className="border-b pb-8" key={stop.id}>
                   <div className="flex items-baseline justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold text-[#3f6f55]">Stop {index + 1}</p>
-                      <h3 className="mt-1 text-lg font-semibold">{stop.placeLabel}</h3>
+                      <p className="text-xs font-semibold text-[#3f6f55]">
+                        Stop {index + 1}
+                      </p>
+                      <h3 className="mt-1 text-lg font-semibold">
+                        {stop.placeLabel}
+                      </h3>
                     </div>
                     <span className="text-sm text-muted-foreground">
                       {stop.nights} {stop.nights === 1 ? "night" : "nights"}
                     </span>
                   </div>
 
-                  {live?.place?.photo ? (
+                  {live?.place?.photo || localPhoto ? (
                     <figure className="mt-4 overflow-hidden rounded-lg border bg-white">
-                      {/* Google photo URLs are ephemeral and must not be optimized or cached. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={live.place.photo.uri}
-                        alt={live.place.name}
-                        className="aspect-[16/9] w-full object-cover"
-                      />
-                      {live.place.photo.attributionName ? (
+                      {live?.place?.photo ? (
+                        /* Google photo URLs are ephemeral and must not be optimized or cached. */
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={live.place.photo.uri}
+                          alt={live.place.name}
+                          className="aspect-[16/9] w-full object-cover"
+                        />
+                      ) : localPhoto ? (
+                        <CityImage
+                          city={stop.placeLabel}
+                          className="aspect-[16/9] w-full"
+                          sizes="(min-width: 1024px) 55vw, 100vw"
+                        />
+                      ) : null}
+                      {live?.place?.photo?.attributionName ? (
                         <figcaption className="px-3 py-2 text-xs text-muted-foreground">
                           Photo by{" "}
                           {live.place.photo.attributionUri ? (
-                            <a href={live.place.photo.attributionUri} target="_blank" rel="noreferrer" className="underline">
+                            <a
+                              href={live.place.photo.attributionUri}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline"
+                            >
                               {live.place.photo.attributionName}
                             </a>
                           ) : (
@@ -167,12 +206,20 @@ export function UserTripDetail({
                   {stop.nights > 0 ? (
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <p className="text-xs text-muted-foreground">Apartment budget</p>
-                        <p className="mt-1 font-semibold">€{(stop.accommodationBudgetCents / 100).toFixed(0)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Apartment budget
+                        </p>
+                        <p className="mt-1 font-semibold">
+                          €{(stop.accommodationBudgetCents / 100).toFixed(0)}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Parking budget</p>
-                        <p className="mt-1 font-semibold">€{(stop.parkingBudgetCents / 100).toFixed(0)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Parking budget
+                        </p>
+                        <p className="mt-1 font-semibold">
+                          €{(stop.parkingBudgetCents / 100).toFixed(0)}
+                        </p>
                       </div>
                     </div>
                   ) : null}
@@ -195,17 +242,31 @@ export function UserTripDetail({
           <UserTripCostBreakdown trip={trip} />
           {estimate?.fuelConsumptionMicrolitres !== null && estimate ? (
             <section aria-labelledby="fuel-assumptions-heading">
-              <h2 id="fuel-assumptions-heading" className="text-xl font-semibold">
+              <h2
+                id="fuel-assumptions-heading"
+                className="text-xl font-semibold"
+              >
                 Fuel assumptions
               </h2>
               <div className="mt-4 border-y py-4 text-sm">
                 <p className="flex items-center justify-between gap-4">
-                  <span className="flex items-center gap-2"><Fuel className="size-4" /> Predicted use</span>
-                  <strong>{(estimate.fuelConsumptionMicrolitres / 1_000_000).toFixed(1)} L</strong>
+                  <span className="flex items-center gap-2">
+                    <Fuel className="size-4" /> Predicted use
+                  </span>
+                  <strong>
+                    {(estimate.fuelConsumptionMicrolitres / 1_000_000).toFixed(
+                      1,
+                    )}{" "}
+                    L
+                  </strong>
                 </p>
                 <p className="mt-3 flex items-center justify-between gap-4">
                   <span>Price per litre</span>
-                  <strong>{estimate.fuelPriceCentsPerLitre === null ? "Unavailable" : `€${(estimate.fuelPriceCentsPerLitre / 100).toFixed(2)}`}</strong>
+                  <strong>
+                    {estimate.fuelPriceCentsPerLitre === null
+                      ? "Unavailable"
+                      : `€${(estimate.fuelPriceCentsPerLitre / 100).toFixed(2)}`}
+                  </strong>
                 </p>
                 {estimate.fuelPriceSourceDate ? (
                   <p className="mt-3 text-xs text-muted-foreground">
@@ -215,7 +276,9 @@ export function UserTripDetail({
               </div>
             </section>
           ) : null}
-          <RoadPaymentPanel countryCodes={trip.stops.map((stop) => stop.countryCode)} />
+          <RoadPaymentPanel
+            countryCodes={trip.stops.map((stop) => stop.countryCode)}
+          />
         </div>
       </div>
     </div>
