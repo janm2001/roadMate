@@ -1,14 +1,25 @@
 import { redirect } from "next/navigation";
 
-import { AuthenticatedHome } from "@/features/auth/components/authenticated-home";
+import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { getAuthenticatedUser } from "@/features/auth/queries/get-authenticated-user";
+import { TripPlansHome } from "@/features/trips/components/trip-plans-home";
+import { getTripPlans } from "@/features/trips/queries/get-trip-plans";
 
 export default async function Home() {
-  const user = await getAuthenticatedUser();
+  const [user, tripPlans] = await Promise.all([
+    getAuthenticatedUser(),
+    getTripPlans(),
+  ]);
 
   if (!user) {
     redirect("/login");
   }
 
-  return <AuthenticatedHome user={user} />;
+  return (
+    <TripPlansHome
+      userEmail={user.email}
+      tripPlans={tripPlans}
+      accountAction={<SignOutButton />}
+    />
+  );
 }
